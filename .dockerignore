@@ -1,0 +1,10 @@
+node_modules
+cache
+log
+temp
+.git
+.gitignore
+Dockerfile
+.dockerignore
+test_omori.js
+package-lock.json
