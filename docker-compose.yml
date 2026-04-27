@@ -1,6 +1,5 @@
 services:
   achievement-watcher-api:
-    build: .
     container_name: achievement-watcher-api
     restart: unless-stopped
     ports:
@@ -9,3 +8,4 @@ services:
       - ${DATA_PATH}/steam/data:/app/data
     environment:
       - NODE_ENV=production
+    image: ghcr.io/bbbreaddd/steam_api_proxy:latest
