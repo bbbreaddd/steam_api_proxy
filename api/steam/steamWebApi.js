@@ -5,8 +5,6 @@ import * as fs from "@xan105/fs";
 import { unescape } from "../../util/xml.js";
 
 import productInfoRequest, { findBinary } from "./steamClient.js";
-import getDataFromSteamDB from "./3rdparty/steamdb.info.js";
-import getHiddenDescriptionFromCacheOrRemote from "./3rdparty/achievementstats.com.js";
 import getDataFromSteamStoreFallbackStoreAPI from "./steamStore.js";
 
 import { require } from "../../util/esm.js";
@@ -28,14 +26,19 @@ async function updateGameServerIndex(gameInfo){
 
   console.log("updateGameServerIndex");
   
-  const lastEntryCount = 16193;
+
   
   const filepath = path.join(folder.cache,"steam/schema/gameIndex.json");
-  const file = await fs.readFile(filepath);
-  const db = JSON.parse(file);
+  let db;
+  try {
+    const file = await fs.readFile(filepath);
+    db = JSON.parse(file);
+  } catch (err) {
+    db = [];
+  }
   const size = db.length;
   
-  if (gameInfo.appid && gameInfo.name && gameInfo.binary && gameInfo.icon)
+  if (gameInfo.appid && gameInfo.name && gameInfo.icon)
   {
     
     if (db.find(game => game.appid === gameInfo.appid)) {
@@ -45,7 +48,7 @@ async function updateGameServerIndex(gameInfo){
     db.push(gameInfo);
     db.sort((a, b) => b.appid - a.appid); //recent first
 
-    if (db.length > size && db.length > lastEntryCount ) 
+    if (db.length > size) 
     {
       await fs.writeFile(filepath,JSON.stringify(db, null));
       console.log("updateGameServerIndex > pushed to db");
@@ -222,21 +225,19 @@ async function generateSteamGameInfo(appID){
   
     const promises = [
       getDataFromSteamStoreFallbackStoreAPI(appID),
-      //getDataFromSteamDB(appID),
       findInAppList(appID)
     ];
 
-    const [steamStore, steamDB, app] = await Promise.allSettled(promises);
+    const [steamStore, app] = await Promise.allSettled(promises);
     
     console.log("---------");
     
     console.log(steamStore);
-    console.log(steamDB);
     console.log(app);
       
-    gameInfo.name = steamStore.value?.name || steamDB.value?.name || app.value?.name
-    gameInfo.binary = steamDB.value?.binary;
-    gameInfo.icon = steamStore.value?.icon || steamDB.value?.icon;
+    gameInfo.name = steamStore.value?.name || app.value?.name
+    gameInfo.binary = undefined;
+    gameInfo.icon = steamStore.value?.icon;
     
     console.log(gameInfo);
     
@@ -293,16 +294,9 @@ async function generateAchievementList(appID,lang = "english"){
      let achievements = data.current.game.availableGameStats.achievements;
         
      const hiddenCount = achievements.reduce((a, c) => (c.hidden && !c.description) ? ++a : a, 0);
-     let achievementstatsAPI;
      if (hiddenCount > 0) 
      {
-       console.log("> has some hidden ach");
-       try{
-         achievementstatsAPI = await getHiddenDescriptionFromCacheOrRemote(appID);
-       }catch(err){
-         console.warn(err);
-         achievementstatsAPI = null;
-       }
+        console.log("> has some hidden ach");
      }
         
      for ( let i in achievements)
@@ -319,14 +313,7 @@ async function generateAchievementList(appID,lang = "english"){
         delete achievements[i].icongray;
       }
           
-       try{
-         if(achievements[i].hidden && !achievements[i].description && achievementstatsAPI) 
-         {
-          achievements[i].description = achievementstatsAPI.find( ach => ach.apiName.toLowerCase() === achievements[i].name.toLowerCase())?.description || achievementstatsAPI[i].description;
-         }
-       }catch{/*Do nothing*/
-        console.warn(`${achievements[i].name} no hidden desc found !`);
-       }
+       /* No longer using 3rd party hidden descriptions */
           
        //Sometimes vendor forget to un-escape char especially with non-english language
        //Example: Gears Tactics in French (xml char)

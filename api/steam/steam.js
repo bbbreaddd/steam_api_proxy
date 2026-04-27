@@ -26,4 +26,4 @@ export async function getSchema(appID,lang = "english"){
   return schema;
 }
 
-export { productInfoRequest, getUserAchievement, getServerGameIndex };
+export { productInfoRequest, getUserAchievement, getServerGameIndex, getSteamGameInfoFromCacheOrRemote };

@@ -12,7 +12,7 @@ router.get("/gameindex", async (req, res) => {
 	response.success(res,data);
 	
  }catch(err){
-  
+  console.error(err);
   if ( err.code === "ENOENT") 
   {
     response.failure(res,{code: 404});
@@ -32,12 +32,12 @@ router.get("/gameindex", async (req, res) => {
    //Check
    if (!(Number.isInteger(req.params.appid) && req.params.appid > 0)) return response.failure(res,{code: 400});
    
-   const data = await steamAPI.productInfoRequest(req.params.appid);
+   const data = await steamAPI.getSteamGameInfoFromCacheOrRemote(req.params.appid);
    
    response.success(res,data);
    
  }catch(err){
-  
+  console.error(err);
   if ( err === "ENOGAME") 
   {
     response.failure(res,{code: 400, msg: "appID must be of type GAME no DLC or others type are accepted"});
@@ -107,6 +107,7 @@ router.get("/gameindex", async (req, res) => {
  
  }catch(err){
  
+  console.error(err);
   if ( err === "EINVALIDAPPID")
   {
     response.failure(res,{code: 400});

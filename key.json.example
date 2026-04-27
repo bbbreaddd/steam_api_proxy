@@ -1,0 +1,7 @@
+{
+  "steam": {
+    "web_api": [
+      "YOUR_STEAM_WEB_API_KEY_HERE"
+    ]
+  }
+}

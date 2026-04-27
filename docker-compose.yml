@@ -7,7 +7,5 @@ services:
       - "3888:80"
     volumes:
       - ${DATA_PATH}/steam/data:/app/data
-      - ${DATA_PATH}/steam/data/config.json:/app/config.json:ro
-      - ${DATA_PATH}/steam/data/key.json:/app/key.json:ro
     environment:
       - NODE_ENV=production

@@ -1,5 +1,10 @@
 node_modules/
+
+config.json
+key.json
+.env
+
 cache/
 log/
 temp/
-key.json
+data/
